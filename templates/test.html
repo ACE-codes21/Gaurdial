@@ -43,6 +43,8 @@
             border-radius: 100px;
             box-shadow: var(--shadow);
             backdrop-filter: blur(10px);
+            /* smooth morph when we toggle immersive/compact state */
+            transition: width .45s cubic-bezier(.21,.74,.27,.99), padding .35s ease, gap .35s ease, background .35s ease, transform .45s cubic-bezier(.21,.74,.27,.99);
         }
         .nav-left { display: flex; align-items: center; gap: 18px; }
         .brand { display: flex; align-items: center; gap: 12px; }
@@ -98,6 +100,19 @@
             width: 22px; height: 22px; border-radius: 999px; background: #000000; color: #ffffff; font-size: 14px; line-height: 1;
         }
     .btn-try:hover .arrow { transform: translateX(4px); background: #ffffff; color: #000000; }
+
+        /* Immersive compact nav state (activated on scroll into demo) */
+        @media (min-width: 800px){
+            .nav.compact { width: clamp(360px, 60vw, 720px); justify-content: center; gap: 14px; padding: 16px 24px; background: rgba(0,0,0,0.85); }
+            .nav.compact .nav-left { gap: 12px; }
+            .nav.compact .brand img.logo { height: 30px; filter: drop-shadow(0 1px 8px rgba(255,255,255,0.22)); transition: height .35s ease; }
+            .nav.compact .links a { margin-left: 14px; }
+            .nav.compact .btn-try { padding: 8px 12px; transform: scale(0.96); transition: transform .35s ease, padding .35s ease; }
+        }
+        @media (prefers-reduced-motion: reduce){
+            .nav{ transition: none; }
+            .nav.compact .brand img.logo, .nav.compact .btn-try{ transition: none; }
+        }
 
         /* Hero with Spline */
         .hero { position: relative; height: 100vh; width: 100%; overflow: hidden; }
@@ -345,7 +360,7 @@
     <!-- Hero Spline Embed -->
     <header class="hero" id="hero">
         <div class="spline-container">
-            <iframe src='https://my.spline.design/prismcoin-jW1KTaG3mdN5thoy7W6cOqfM/' frameborder='0' title="Spline Scene"></iframe>
+            <iframe src='https://my.spline.design/prismcoin-jW1KTaG3mdN5thoy7W6cOqfM/' frameborder='0'></iframe>
         </div>
     </header>
 
