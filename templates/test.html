@@ -44,7 +44,7 @@
             box-shadow: var(--shadow);
             backdrop-filter: blur(10px);
             /* smoother morph when we toggle immersive/compact state */
-            transition: width .85s cubic-bezier(.22,.61,.36,1), padding .65s ease, gap .65s ease, background .65s ease, transform .85s cubic-bezier(.22,.61,.36,1);
+            transition: width 1.1s cubic-bezier(.22,.61,.36,1), padding .8s ease, gap .8s ease, background .8s ease, transform 1.1s cubic-bezier(.22,.61,.36,1);
         }
         .nav-left { display: flex; align-items: center; gap: 18px; }
         .brand { display: flex; align-items: center; gap: 12px; }
@@ -103,11 +103,12 @@
 
         /* Immersive compact nav state (activated on scroll into demo) */
         @media (min-width: 800px){
-            .nav.compact { width: clamp(480px, 68vw, 860px); justify-content: center; gap: 24px; padding: 18px 28px; background: rgba(0,0,0,0.85); }
-            .nav.compact .nav-left { gap: 18px; }
-            .nav.compact .brand img.logo { height: 32px; filter: drop-shadow(0 1px 8px rgba(255,255,255,0.22)); transition: height .6s ease; }
-            .nav.compact .links a { margin-left: 18px; }
-            .nav.compact .btn-try { padding: 10px 14px; transform: scale(0.985); transition: transform .6s ease, padding .6s ease; }
+            /* Wider compact state so items aren't cramped and sides aren't empty */
+            .nav.compact { width: clamp(720px, 88vw, 1100px); justify-content: space-between; gap: 28px; padding: 18px 32px; background: rgba(0,0,0,0.85); }
+            .nav.compact .nav-left { gap: 20px; }
+            .nav.compact .brand img.logo { height: 34px; filter: drop-shadow(0 1px 8px rgba(255,255,255,0.22)); transition: height .8s ease; }
+            .nav.compact .links a { margin-left: 24px; }
+            .nav.compact .btn-try { padding: 12px 16px; transform: scale(0.995); transition: transform .8s ease, padding .8s ease; }
         }
         @media (prefers-reduced-motion: reduce){
             .nav{ transition: none; }
@@ -347,7 +348,7 @@
     <!-- Navbar -->
     <nav class="nav">
         <div class="nav-left">
-            <div class="brand"><img class="logo" src="{{ url_for('static', filename='llm.png') }}" alt="LLM Logo" /></div>
+            <div class="brand"><img class="logo" src="{{ url_for('static', filename='llm.png') }}" alt="LLM Logo" loading="lazy" onerror="this.onerror=null; this.src='/public/llm.png';" /></div>
             <div class="links">
                 <a href="#hero" aria-label="Go home">Home</a>
                 <a href="#features" aria-label="View features">Features</a>
