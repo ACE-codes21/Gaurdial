@@ -1,4 +1,4 @@
-Excellent question. The features have been integrated in a way that simulates the core concepts of Obliviate. Here is a guide on how each one works, how to test it, and what to expect.
+Excellent. The features have been integrated in a way that simulates the core concepts of Obliviate. Here is a guide on how each one works, how to test it, and what to expect.
 
 ---
 
