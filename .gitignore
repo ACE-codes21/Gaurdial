@@ -13,6 +13,7 @@ __pycache__/
 prompt_shield.log
 *.log
 .tmp/
+cached_lm_*
 
 data/
 tmp_*.json
@@ -20,6 +21,11 @@ tmp_*.json
 # Models and large binaries
 models/
 *.joblib
+chroma_db/
+forged_model/
+unlearned_model/
+unlearning_output/
+uploads/
 
 # VS Code
 .vscode/
@@ -33,3 +39,7 @@ node_modules/
 
 # Public static secrets safeguard
 templates/public/*.json
+
+
+.github/instructions/kluster-code-verify.instructions.md
+.kluster

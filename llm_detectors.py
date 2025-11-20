@@ -31,7 +31,7 @@ def _have_gemini() -> bool:
     return genai is not None and bool(os.getenv("GEMINI_API_KEY"))
 
 
-def _model_name(cfg: Optional[Dict[str, Any]], default: str = "gemini-2.5-flash") -> str:
+def _model_name(cfg: Optional[Dict[str, Any]], default: str = "gemini-3-pro-preview") -> str:
     return (cfg or {}).get("llm", {}).get("model", default)
 
 

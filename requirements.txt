@@ -6,3 +6,9 @@ pandas
 joblib
 spacy
 gunicorn
+chromadb
+sentence-transformers
+transformers
+peft
+torch
+accelerate

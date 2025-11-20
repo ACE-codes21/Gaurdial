@@ -196,6 +196,8 @@
     .tabbar { display: flex; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 6px; margin-bottom: 12px; }
     .tab-btn { background: transparent; color: rgba(255,255,255,0.85); border: none; border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; transition: background .15s ease, color .15s ease; }
     .tab-btn.active { background: rgba(255,255,255,0.12); color: #fff; }
+    .tab-content { display: none; } /* Renamed from .tab */
+    .tab-content.active { display: block; } /* Renamed from .tab.active */
     .tab { display: none; opacity: 0; transform: translateY(4px); transition: opacity .18s ease, transform .18s ease; }
     .tab.active { display: block; opacity: 1; transform: translateY(0); }
 
@@ -364,9 +366,10 @@
         <div class="nav-left">
             <div class="brand"><img class="logo" src="{{ url_for('static', filename='llm.png') }}" alt="LLM Logo" /></div>
             <div class="links">
-                <a href="#hero" aria-label="Go home">Home</a>
-                <a href="#features" aria-label="View features">Features</a>
-                <a href="#how" aria-label="See how it works">How it works</a>
+                <a href="/">Shield</a>
+                <a href="/auditor">Auditor</a>
+                <a href="/forge">Forge</a>
+                <a href="/unlearning">Unlearning</a>
             </div>
         </div>
         <a class="btn-try" href="#demo" aria-label="Try Guardial now"><span>Try now</span><span class="arrow">→</span></a>
@@ -381,52 +384,132 @@
 
     <main>
         <!-- Live Demo -->
+        
         <section class="section" id="demo">
-            <h2>Guardial</h2>
-            <p class="lead">Try real-time threat detection, PII redaction, and injection prevention.</p>
+            <h2>Guardial Workbench</h2>
+            <p class="lead">A unified dashboard for real-time protection and model lifecycle management.</p>
+            
             <div class="workbench">
-                
+                <div class="wb-header">
+                    <div class="dashboard-tabs">
+                        <button id="tab-btn-shield" class="tab-btn active" onclick="showWorkbenchTab('shield', this)">Shield</button>
+                        <button id="tab-btn-auditor" class="tab-btn" onclick="showWorkbenchTab('auditor', this)">Auditor</button>
+                        <button id="tab-btn-forge" class="tab-btn" onclick="showWorkbenchTab('forge', this)">Forge</button>
+                        <button id="tab-btn-unlearning" class="tab-btn" onclick="showWorkbenchTab('unlearning', this)">Unlearning</button>
+                    </div>
+                </div>
                 <div class="wb-body">
-                    <div class="grid two resizable" id="wbGrid">
-                        <div class="card" style="display:flex; flex-direction:column; gap:12px; min-height:480px;">
-                            <div class="label-row" style="margin-bottom:0;"><label>Chat</label>
-                                <div style="display:flex; gap:8px; align-items:center;">
-                                    <select id="examplesSelect" class="select" aria-label="Example prompts"></select>
-                                    <button class="btn-outline" onclick="insertExample()" aria-label="Insert example">Insert</button>
-                                    <button class="btn-outline" onclick="resetChat()" aria-label="Reset chat">New chat</button>
+                    <!-- SHIELD TAB -->
+                    <div id="tab-shield" class="tab-content active">
+                        <p class="lead" style="font-size: 16px; margin-bottom: 16px;">Test the real-time Shield for prompt injection, PII redaction, and harmful content detection.</p>
+                        <div class="grid two resizable" id="wbGrid">
+                            <div class="card" style="display:flex; flex-direction:column; gap:12px; min-height:480px;">
+                                <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div>
+                                <div class="chat-input">
+                                    <input id="chatInput" type="text" placeholder="Message the model…">
+                                    <button id="sendBtn" onclick="handleShieldChat()"><span class="btn-label">Send</span><span class="spinner"></span></button>
                                 </div>
                             </div>
-                            <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div>
-                            <div class="chat-input">
-                                <input id="chatInput" type="text" placeholder="Message the model…" />
-                                <button id="sendBtn" onclick="sendChat()" aria-label="Send message"><span class="btn-label">Send</span><span class="spinner" aria-hidden="true"></span></button>
+                            <div class="divider" id="wbDivider"></div>
+                            <div class="card" id="flowCard">
+                                <div class="tabbar">
+                                    <button class="tab-btn active" onclick="showResultTab('flow', this)">Flow</button>
+                                    <button class="tab-btn" onclick="showResultTab('json', this)">Raw JSON</button>
+                                </div>
+                                <div class="tab active" id="tab-flow">
+                                    <pre id="flowOutput"></pre>
+                                </div>
+                                <div class="tab" id="tab-json">
+                                    <pre id="jsonOutput"></pre>
+                                </div>
                             </div>
-                            <div class="hint">Tip: Ctrl/Cmd + Enter to send</div>
                         </div>
-                        <div class="divider" id="wbDivider" aria-label="Resize panels" title="Drag to resize"></div>
-                        <div class="card" id="flowCard">
-                            <div class="tabbar">
-                                <button class="tab-btn active" data-tab="flow" onclick="showTab('flow', this)">Flow</button>
-                                <button class="tab-btn" data-tab="json" onclick="showTab('json', this)">Raw JSON</button>
+                    </div>
+        
+                    <!-- AUDITOR TAB -->
+                    <div id="tab-auditor" class="tab-content">
+                        <p class="lead" style="font-size: 16px; margin-bottom: 16px;">Ensure model outputs are grounded in your provided knowledge base.</p>
+                        <div class="grid two">
+                            <div class="card">
+                                <h3>1. Upload Dataset</h3>
+                                <form id="auditorDatasetForm">
+                                    <label for="auditor-dataset">Knowledge Base (.csv, .json)</label>
+                                    <input type="file" id="auditor-dataset" name="dataset" accept=".json, .csv" required>
+                                    <p class="hint">This data will be added to a vector database.</p>
+                                    <button type="submit" id="auditorUploadBtn"><span class="btn-label">Upload</span><span class="spinner"></span></button>
+                                </form>
                             </div>
-                            <div class="tab active" id="tab-flow">
-                                <div class="label-row"><label>Backend Flow</label>
-                                    <div style="display:flex; gap:8px; align-items:center;">
-                                        <button class="toggle-btn" onclick="toggleWrap(this)" aria-label="Toggle wrap">Wrap</button>
-                                        <button class="copy-btn" onclick="copyFrom('flowOutput', this)" aria-label="Copy Flow JSON">Copy</button>
-                                    </div>
+                            <div class="card">
+                                <h3>2. Query Model</h3>
+                                <form id="auditorQueryForm">
+                                    <label for="auditor-query">Test Query</label>
+                                    <input type="text" id="auditor-query" name="query" required placeholder="e.g., What is the remote work policy?">
+                                    <p class="hint">Ask a question related to your knowledge base.</p>
+                                    <button type="submit" id="auditorQueryBtn"><span class="btn-label">Query</span><span class="spinner"></span></button>
+                                </form>
+                            </div>
+                        </div>
+                        <div id="auditorResults" class="card results-card" style="margin-top: 20px; display: none;">
+                            <h3>Result</h3>
+                            <div class="result-grid">
+                                <div class="stat"><div id="decision" class="num">--</div><div class="label">Decision</div></div>
+                                <div class="stat"><div id="isrScore" class="num">--</div><div class="label">ISR Score</div></div>
+                            </div>
+                            <div style="margin-top: 20px;"><label>LLM Response</label><pre id="llmResponse"></pre></div>
+                        </div>
+                    </div>
+        
+                    <!-- FORGE TAB -->
+                    <div id="tab-forge" class="tab-content">
+                        <p class="lead" style="font-size: 16px; margin-bottom: 16px;">Fine-tune a base model on your own dataset.</p>
+                        <div class="grid two">
+                            <div class="card">
+                                <h3>1. Configure & Upload</h3>
+                                <form id="forgeForm">
+                                    <label for="forge-dataset">Fine-tuning Dataset (.csv)</label>
+                                    <input type="file" id="forge-dataset" name="dataset" accept=".csv" required><p class="hint">CSV must contain a 'text' column.</p>
+                                    <label for="forge-epochs">Epochs</label>
+                                    <input type="number" id="forge-epochs" name="epochs" value="1" min="1" max="10"><p class="hint">Number of training passes.</p>
+                                    <button type="submit" id="forgeTuneBtn"><span class="btn-label">Start Fine-tuning</span><span class="spinner"></span></button>
+                                </form>
+                            </div>
+                            <div id="forgeResults" class="card results-card" style="display: none;">
+                                <h3>Training Loss</h3>
+                                <canvas id="lossChart"></canvas>
+                                <button id="forge-success-btn" onclick="showWorkbenchTab('unlearning')">🚀 Use Forged Model for Unlearning</button>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- UNLEARNING TAB -->
+                    <div id="tab-unlearning" class="tab-content">
+                        <p class="lead" style="font-size: 16px; margin-bottom: 16px;">Remove specific information from a model without full retraining.</p>
+                        <div class="grid two">
+                            <div class="card">
+                                <h3>1. Configure & Upload</h3>
+                                <form id="unlearningForm">
+                                    <label for="unlearning-training-set">Original Training Set (.csv)</label>
+                                    <input type="file" id="unlearning-training-set" name="training_set" required><p class="hint">The full, original dataset.</p>
+                                    <label for="unlearning-forget-set">Forget Set (.csv)</label>
+                                    <input type="file" id="unlearning-forget-set" name="forget_set" required><p class="hint">The dataset with sensitive info removed.</p>
+                                    <label for="unlearning-info">Info to Forget</label>
+                                    <input type="text" id="unlearning-info" name="info_to_forget" required placeholder="e.g., John Doe"><p class="hint">The specific term to unlearn.</p>
+                                    <button type="submit" id="unlearnBtn"><span class="btn-label">Start Unlearning</span><span class="spinner"></span></button>
+                                </form>
+                            </div>
+                            <div id="unlearningResults" class="card results-card" style="display: none;">
+                                <h3>Unlearning Metrics</h3>
+                                <div class="result-grid">
+                                    <div class="stat"><div id="retainAccuracy" class="num">--</div><div class="label">Retain Accuracy</div></div>
+                                    <div class="stat"><div id="forgetAccuracy" class="num">--</div><div class="label">Forget Score</div></div>
                                 </div>
-                                <div class="pre-container collapsed"><pre id="flowOutput"></pre><div class="fade"></div></div>
-                            </div>
-                            <div class="tab" id="tab-json">
-                                <div class="label-row"><label>Full API Response</label><button class="copy-btn" onclick="copyFrom('jsonOutput', this)" aria-label="Copy Full API Response">Copy</button></div>
-                                <div class="pre-container collapsed"><pre id="jsonOutput"></pre><div class="fade"></div></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+        
 
         <!-- How It Works Section -->
         <section class="section how-section" id="how">
@@ -949,11 +1032,13 @@
 
             divider.addEventListener('mousedown', (e)=>{
                 dragging = true; startX = e.clientX; total = grid.getBoundingClientRect().width; startLeft = parseFloat(getComputedStyle(grid).getPropertyValue('--left-col')) || (total*0.55);
-                document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
             });
             divider.addEventListener('touchstart', (e)=>{
                 dragging = true; startX = e.touches[0].clientX; total = grid.getBoundingClientRect().width; startLeft = parseFloat(getComputedStyle(grid).getPropertyValue('--left-col')) || (total*0.55);
-                document.addEventListener('touchmove', onMove, {passive:false}); document.addEventListener('touchend', onUp);
+                document.addEventListener('touchmove', onMove, {passive:false});
+                document.addEventListener('touchend', onUp);
             });
 
             // restore saved split

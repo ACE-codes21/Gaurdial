@@ -6,6 +6,12 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from datetime import datetime
 import re
+import pandas as pd
+import time
+from werkzeug.utils import secure_filename
+import vector_db
+from fine_tuner import run_fine_tuning
+from unlearner import run_unlearning
 
 from detectors import (
     load_models,
@@ -97,6 +103,24 @@ def features():
 def test_page():
     # Consolidate to main homepage
     return redirect(url_for('home'))
+
+
+@app.route('/unlearning')
+def unlearning_page():
+    """Renders the LLM Unlearning page."""
+    return render_template('unlearning.html')
+
+
+@app.route('/auditor')
+def auditor_page():
+    """Renders the Hallucination Auditor page."""
+    return render_template('auditor.html')
+
+
+@app.route('/forge')
+def forge_page():
+    """Renders the Model Forge page."""
+    return render_template('forge.html')
 
 
 @app.route('/public/<path:filename>')
@@ -324,6 +348,328 @@ def get_logs():
         return jsonify({"error": "Failed to read logs."}), 500
 
     return jsonify({"events": events})
+
+
+import pandas as pd
+from werkzeug.utils import secure_filename
+import vector_db
+
+# --- Obliviate Feature APIs ---
+
+import random
+
+
+
+@app.route('/api/unlearn', methods=['POST'])
+def api_unlearn():
+    """Performs unlearning on a model."""
+    if 'training_set' not in request.files or 'forget_set' not in request.files:
+        return jsonify({"error": "Missing training or forget set file."}), 400
+    
+    training_file = request.files['training_set']
+    forget_file = request.files['forget_set']
+    info_to_forget = request.form.get('info_to_forget')
+
+    if training_file.filename == '' or forget_file.filename == '' or not info_to_forget:
+        return jsonify({"error": "Missing forget_set, training_set, or info_to_forget."}), 400
+
+    training_path, forget_path = None, None
+    try:
+        # Save files temporarily
+        training_filename = secure_filename(training_file.filename)
+        training_path = os.path.join("uploads", training_filename)
+        training_file.save(training_path)
+
+        forget_filename = secure_filename(forget_file.filename)
+        forget_path = os.path.join("uploads", forget_filename)
+        forget_file.save(forget_path)
+
+        # Determine model path
+        model_path = "./forged_model"
+        if not os.path.exists(model_path):
+            model_path = "distilgpt2"
+        
+        logger.info(f"Starting unlearning for '{info_to_forget}' using model '{model_path}'")
+
+        metrics = run_unlearning(
+            model_path=model_path,
+            forget_set_path=forget_path,
+            info_to_forget=info_to_forget
+        )
+
+        logger.info("Unlearning process complete.")
+
+        # Clean up temporary files
+        os.remove(training_path)
+        os.remove(forget_path)
+
+        return jsonify({
+            "status": "success",
+            "retain_accuracy": metrics.get("retain_accuracy"),
+            "forget_accuracy": metrics.get("forget_accuracy")
+        })
+
+    except Exception as e:
+        logger.error(f"Error in /api/unlearn: {e}")
+        # Clean up in case of error
+        if training_path and os.path.exists(training_path):
+            os.remove(training_path)
+        if forget_path and os.path.exists(forget_path):
+            os.remove(forget_path)
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/auditor/upload', methods=['POST'])
+def api_auditor_upload():
+    """Handles dataset upload for the Hallucination Auditor."""
+    if 'dataset' not in request.files:
+        return jsonify({"error": "Missing dataset file."}), 400
+    
+    file = request.files['dataset']
+    filename = secure_filename(file.filename)
+    
+    if filename == '':
+        return jsonify({"error": "No selected file."}), 400
+
+    try:
+        # Clear the existing collection before adding new documents
+        vector_db.clear_collection()
+
+        documents = []
+        if filename.endswith('.csv'):
+            df = pd.read_csv(file)
+            # Assuming the text is in a column named 'text'
+            if 'text' in df.columns:
+                documents = df['text'].tolist()
+            elif 'content' in df.columns:
+                documents = df['content'].tolist()
+            else:
+                return jsonify({"error": "CSV file must have a 'text' or 'content' column."}), 400
+        elif filename.endswith('.json'):
+            data = json.load(file)
+            # Assuming the json is a list of strings
+            if isinstance(data, list):
+                documents = [str(item) for item in data]
+            else:
+                return jsonify({"error": "JSON file must be a list of strings."}), 400
+        else:
+            # Plain text file
+            content = file.read().decode('utf-8')
+            documents = content.split('\n')
+
+        # Filter out empty documents
+        documents = [doc for doc in documents if doc.strip()]
+        
+        if not documents:
+            return jsonify({"error": "No documents found in the file."}), 400
+
+        vector_db.add_documents_to_collection(documents)
+        
+        return jsonify({"status": "success", "message": f"{len(documents)} documents added to the vector store."})
+
+    except Exception as e:
+        logger.error(f"Error in /api/auditor/upload: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/auditor/query', methods=['POST'])
+def api_auditor_query():
+    """Queries the auditor's vector store and the LLM using ISR threshold."""
+    data = request.json
+    if not data or 'query' not in data:
+        return jsonify({"error": "Missing query."}), 400
+        
+    query = data['query']
+    custom_threshold = data.get('threshold')  # Optional custom threshold
+    
+    logger.info(f"Auditor query received: '{query}'")
+    
+    try:
+        # Use the new ISR threshold checking mechanism
+        isr_decision = vector_db.check_isr_threshold(query, custom_threshold)
+        
+        llm_response = "Query was blocked as it could not be verified against the provided dataset."
+        
+        # If decision allows, generate LLM response
+        if isr_decision['allow']:
+            logger.info(f"ISR check passed. Generating grounded LLM response.")
+            
+            try:
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                # Augment the prompt with the retrieved context
+                retrieved_doc = isr_decision.get('matched_document', '')
+                grounded_prompt = f"""
+                You are a helpful assistant. Answer the following user query based *only* on the provided context document.
+                If the context does not contain the answer, state that you cannot answer based on the provided information.
+
+                CONTEXT:
+                ---
+                {retrieved_doc}
+                ---
+                USER QUERY: {query}
+                """
+                response = model.generate_content(grounded_prompt)
+                llm_response = response.text
+                logger.info(f"LLM generated response for query '{query}'")
+                
+            except Exception as e:
+                llm_response = f"Error communicating with LLM: {str(e)}"
+                logger.error(f"LLM Error during auditor query for '{query}': {e}")
+        else:
+            logger.info(f"ISR check failed. Query blocked. Reason: {isr_decision['reason']}")
+        
+        return jsonify({
+            "status": "success",
+            "decision": isr_decision['decision'],
+            "isr_score": f"{isr_decision['isr_score']:.2f}",
+            "threshold": f"{isr_decision['threshold']:.2f}",
+            "confidence": isr_decision['confidence'],
+            "explanation": isr_decision['explanation'],
+            "reason": isr_decision['reason'],
+            "llm_response": llm_response
+        })
+
+    except Exception as e:
+        logger.exception(f"Error in /api/auditor/query for '{query}': {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/auditor/threshold', methods=['GET', 'POST'])
+def api_auditor_threshold():
+    """Get or set the ISR threshold configuration."""
+    if request.method == 'GET':
+        config = vector_db.get_isr_config()
+        return jsonify(config)
+    
+    elif request.method == 'POST':
+        data = request.json
+        if not data or 'threshold' not in data:
+            return jsonify({"error": "Missing threshold value."}), 400
+        
+        new_threshold = float(data['threshold'])
+        success = vector_db.set_isr_threshold(new_threshold)
+        
+        if success:
+            return jsonify({
+                "status": "success",
+                "message": f"ISR threshold updated to {new_threshold:.2f}",
+                "config": vector_db.get_isr_config()
+            })
+        else:
+            return jsonify({
+                "error": "Invalid threshold value. Must be between min and max limits."
+            }), 400
+
+
+import time
+
+
+
+@app.route('/api/forge/tune', methods=['POST'])
+def api_forge_tune():
+    """Fine-tunes a model using the provided dataset with enhanced tracking."""
+    if 'dataset' not in request.files:
+        return jsonify({"error": "Missing dataset file."}), 400
+    
+    file = request.files['dataset']
+    if file.filename == '':
+        return jsonify({"error": "No selected file."}), 400
+
+    try:
+        # Get parameters from form data
+        epochs = int(request.form.get('epochs', 1))
+        learning_rate = float(request.form.get('learning_rate', 5e-5))
+
+        # Save the uploaded file temporarily
+        filename = secure_filename(file.filename)
+        temp_path = os.path.join("uploads", filename)
+        file.save(temp_path)
+        
+        logger.info(f"Starting fine-tuning for {filename} with epochs={epochs}, lr={learning_rate}")
+
+        # Run the fine-tuning process
+        results = run_fine_tuning(
+            dataset_path=temp_path,
+            epochs=epochs,
+            learning_rate=learning_rate
+        )
+        
+        # Clean up the temporary file
+        os.remove(temp_path)
+
+        logger.info(f"Fine-tuning complete for {filename}.")
+
+        return jsonify({
+            "status": "success",
+            "message": "Fine-tuning complete. Model ready for unlearning.",
+            "model_path": results["model_path"],
+            "loss_data": {
+                "values": results["loss_history"],
+                "steps": results["steps"],
+                "final_loss": results["final_loss"]
+            },
+            "metadata": {
+                "dataset_samples": results["dataset_samples"],
+                "training_blocks": results["training_blocks"],
+                "available_for_unlearning": True
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"Error in /api/forge/tune: {e}")
+        # Clean up in case of error
+        if 'temp_path' in locals() and os.path.exists(temp_path):
+            os.remove(temp_path)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/models/list', methods=['GET'])
+def api_models_list():
+    """Lists available models (forged and unlearned) with their metadata."""
+    try:
+        models = []
+        
+        # Check for forged model
+        if os.path.exists("./forged_model"):
+            metadata_path = os.path.join("./forged_model", "model_metadata.json")
+            if os.path.exists(metadata_path):
+                with open(metadata_path, 'r') as f:
+                    metadata = json.load(f)
+                    metadata['type'] = 'forged'
+                    models.append(metadata)
+            else:
+                models.append({
+                    "type": "forged",
+                    "output_path": "./forged_model",
+                    "status": "available",
+                    "available_for_unlearning": True
+                })
+        
+        # Check for unlearned model
+        if os.path.exists("./unlearned_model"):
+            unlearned_metadata_path = os.path.join("./unlearned_model", "model_metadata.json")
+            if os.path.exists(unlearned_metadata_path):
+                with open(unlearned_metadata_path, 'r') as f:
+                    metadata = json.load(f)
+                    metadata['type'] = 'unlearned'
+                    models.append(metadata)
+            else:
+                models.append({
+                    "type": "unlearned",
+                    "output_path": "./unlearned_model",
+                    "status": "available",
+                    "available_for_unlearning": False
+                })
+        
+        return jsonify({
+            "status": "success",
+            "models": models,
+            "count": len(models)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error listing models: {e}")
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     # Bind to the PORT environment variable for container platforms (defaults to 8080)
