@@ -1,59 +1,79 @@
-"""
-Fallback vector_db implementation using ChromaDB's built-in embeddings.
-This version works with Python 3.13 and doesn't require sentence-transformers.
-"""
 import chromadb
+from sentence_transformers import SentenceTransformer
 import logging
 
 logger = logging.getLogger(__name__)
 
-# Initialize ChromaDB client with default embedding function
-# ChromaDB will use its built-in sentence transformer embeddings
+# Lazy load the sentence transformer model
+model = None
+
+def get_model():
+    """Lazy load the SentenceTransformer model."""
+    global model
+    if model is None:
+        try:
+            logger.info("Loading SentenceTransformer model (this may take a moment on first run)...")
+            model = SentenceTransformer('all-MiniLM-L6-v2')
+            logger.info("SentenceTransformer model loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load SentenceTransformer model: {e}")
+            logger.error("Auditor features will be unavailable. Check your internet connection.")
+            raise
+    return model
+
+# Initialize ChromaDB client
+# Using a persistent client to ensure data is shared across processes.
 client = chromadb.PersistentClient(path="./chroma_db")
 
-# In-memory cache for collections
+# In-memory cache for collections to avoid re-creating them
 collections = {}
 
 # Default ISR (Information Source Retrieval) threshold configuration
-DEFAULT_ISR_THRESHOLD = 0.40
+DEFAULT_ISR_THRESHOLD = 0.40  # Default similarity threshold for allowing responses (lowered for better matching)
 ISR_CONFIG = {
     "threshold": DEFAULT_ISR_THRESHOLD,
-    "min_threshold": 0.1,
-    "max_threshold": 0.95,
-    "distance_metric": "l2",
+    "min_threshold": 0.1,  # Minimum configurable threshold
+    "max_threshold": 0.95,  # Maximum configurable threshold
+    "distance_metric": "l2",  # ChromaDB uses L2 distance by default
 }
 
 def get_or_create_collection(name="hallucination_auditor"):
-    """Gets a ChromaDB collection or creates it if it doesn't exist."""
+    """
+    Gets a ChromaDB collection or creates it if it doesn't exist.
+    """
     if name in collections:
         return collections[name]
     
-    collection = client.get_or_create_collection(
-        name=name,
-        metadata={"hnsw:space": "cosine"}  # Use cosine similarity
-    )
+    collection = client.get_or_create_collection(name=name)
     collections[name] = collection
     logger.info(f"Collection '{name}' retrieved/created successfully")
     return collection
 
 def add_documents_to_collection(documents, collection_name="hallucination_auditor"):
-    """Adds a list of documents to a specified ChromaDB collection."""
+    """
+    Adds a list of documents to a specified ChromaDB collection.
+    """
     collection = get_or_create_collection(collection_name)
+    
+    # Generate embeddings for the documents
+    embeddings = get_model().encode(documents).tolist()
     
     # Generate IDs for the documents
     ids = [f"doc_{i}" for i in range(len(documents))]
     
-    # Add the documents - ChromaDB will handle embeddings automatically
+    # Add the documents, embeddings, and IDs to the collection
     collection.add(
+        embeddings=embeddings,
         documents=documents,
         ids=ids
     )
     logger.info(f"Added {len(documents)} documents to collection '{collection_name}'")
     return True
 
-def distance_to_similarity(distance, metric="cosine"):
+def distance_to_similarity(distance, metric="l2"):
     """
     Converts distance to similarity score (0-1 range).
+    For L2 distance: lower distance = higher similarity.
     
     Args:
         distance: The distance value from vector search
@@ -62,16 +82,16 @@ def distance_to_similarity(distance, metric="cosine"):
     Returns:
         similarity: A score between 0 (completely different) and 1 (identical)
     """
-    if metric == "cosine":
-        # Cosine distance is 1 - cosine_similarity, so we invert it
-        # Distance ranges from 0 (identical) to 2 (opposite)
-        similarity = 1.0 - (distance / 2.0)
-        return max(0.0, min(1.0, similarity))
-    elif metric == "l2":
-        # For L2 distance: use exponential decay
+    if metric == "l2":
+        # For normalized vectors, L2 distance can range wider than 0-2
+        # Using more forgiving exponential decay: e^(-distance)
+        # This gives better similarity scores for related but not identical queries
         import math
-        similarity = math.exp(-distance * 0.5)
+        similarity = math.exp(-distance * 0.5)  # Exponential decay with scaling factor
         return max(0.0, min(1.0, similarity))
+    elif metric == "cosine":
+        # Cosine distance is 1 - cosine_similarity, so we invert it
+        return 1.0 - distance
     else:
         # Default: exponential decay
         import math
@@ -81,6 +101,15 @@ def calculate_isr_score(query_results):
     """
     Calculates the ISR (Information Source Retrieval) score from query results.
     
+    The ISR score indicates how well the query matches the dataset:
+    - 1.0 = Perfect match (query is directly from the dataset)
+    - 0.7+ = Good match (query is closely related to dataset content)
+    - 0.4-0.7 = Moderate match (some relevance to dataset)
+    - <0.4 = Poor match (query is likely outside dataset scope)
+    
+    Args:
+        query_results: Results from ChromaDB query
+        
     Returns:
         dict: ISR score metrics including best match score and explanation
     """
@@ -96,9 +125,9 @@ def calculate_isr_score(query_results):
     best_doc = query_results['documents'][0][0] if query_results.get('documents') else None
     
     # Convert distance to similarity score
-    similarity_score = distance_to_similarity(best_distance, "cosine")
+    similarity_score = distance_to_similarity(best_distance, ISR_CONFIG["distance_metric"])
     
-    # Determine confidence level
+    # Determine confidence level (adjusted thresholds)
     if similarity_score >= 0.75:
         confidence = "very_high"
         explanation = "Query directly matches knowledge base content."
@@ -124,12 +153,17 @@ def calculate_isr_score(query_results):
     }
 
 def query_collection(query, collection_name="hallucination_auditor", n_results=5):
-    """Queries a ChromaDB collection and returns the most similar documents."""
+    """
+    Queries a ChromaDB collection and returns the most similar documents with ISR metrics.
+    """
     collection = get_or_create_collection(collection_name)
     
-    # Query the collection - ChromaDB handles embedding automatically
+    # Generate embedding for the query
+    query_embedding = get_model().encode([query]).tolist()
+    
+    # Query the collection
     results = collection.query(
-        query_texts=[query],
+        query_embeddings=query_embedding,
         n_results=n_results
     )
     
@@ -178,7 +212,15 @@ def check_isr_threshold(query, custom_threshold=None):
     return decision
 
 def set_isr_threshold(new_threshold):
-    """Updates the ISR threshold configuration."""
+    """
+    Updates the ISR threshold configuration.
+    
+    Args:
+        new_threshold: New threshold value (must be between min and max)
+        
+    Returns:
+        bool: Success status
+    """
     if ISR_CONFIG["min_threshold"] <= new_threshold <= ISR_CONFIG["max_threshold"]:
         ISR_CONFIG["threshold"] = new_threshold
         logger.info(f"ISR threshold updated to {new_threshold:.2f}")
@@ -192,7 +234,9 @@ def get_isr_config():
     return ISR_CONFIG.copy()
 
 def clear_collection(collection_name="hallucination_auditor"):
-    """Deletes all items from a collection."""
+    """
+    Deletes all items from a collection.
+    """
     if collection_name in collections:
         client.delete_collection(name=collection_name)
         del collections[collection_name]

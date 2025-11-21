@@ -9,16 +9,6 @@ import re
 import pandas as pd
 import time
 from werkzeug.utils import secure_filename
-import vector_db
-from fine_tuner import run_fine_tuning
-from unlearner import run_unlearning
-
-from detectors import (
-    load_models,
-    detect_harmful_content,
-    redact_pii,
-    detect_prompt_injection,
-)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -33,6 +23,10 @@ app = Flask(
     static_url_path='/public'
 )
 
+# Disable template caching for development
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -43,6 +37,69 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Import vector_db for Hallucination Auditor (uses ChromaDB built-in embeddings)
+try:
+    import vector_db
+    AUDITOR_AVAILABLE = True
+    logger.info("Vector DB module loaded successfully - Hallucination Auditor available")
+except KeyboardInterrupt:
+    raise
+except Exception as e:
+    AUDITOR_AVAILABLE = False
+    vector_db = None
+    logger.error(f"Vector DB module failed to load: {str(e)[:200]}")
+    logger.error("Hallucination Auditor features unavailable. Install with: pip install chromadb")
+
+# Lazy import for Model Forge (uses transformers + torch which have Python 3.13 compatibility issues)
+FORGE_AVAILABLE = False
+run_fine_tuning = None
+
+def _load_fine_tuner():
+    global FORGE_AVAILABLE, run_fine_tuning
+    if run_fine_tuning is None:
+        try:
+            from fine_tuner import run_fine_tuning as _run_fine_tuning
+            run_fine_tuning = _run_fine_tuning
+            FORGE_AVAILABLE = True
+            logger.info("Fine tuner module loaded successfully - Model Forge available")
+            return True
+        except Exception as e:
+            logger.error(f"Fine tuner module failed: {str(e)[:200]}")
+            logger.error("Model Forge unavailable (Python 3.13 has compatibility issues with transformers/torch)")
+            FORGE_AVAILABLE = False
+            return False
+    return FORGE_AVAILABLE
+
+# Lazy import for Unlearning Engine (uses transformers + torch + peft)
+UNLEARNING_AVAILABLE = False
+run_unlearning = None
+
+def _load_unlearner():
+    global UNLEARNING_AVAILABLE, run_unlearning
+    if run_unlearning is None:
+        try:
+            from unlearner import run_unlearning as _run_unlearning
+            run_unlearning = _run_unlearning
+            UNLEARNING_AVAILABLE = True
+            logger.info("Unlearner module loaded successfully - Unlearning Engine available")
+            return True
+        except Exception as e:
+            logger.error(f"Unlearner module failed: {str(e)[:200]}")
+            logger.error("Unlearning unavailable (Python 3.13 has compatibility issues with transformers/torch)")
+            UNLEARNING_AVAILABLE = False
+            return False
+    return UNLEARNING_AVAILABLE
+
+# Note: Fine tuner and unlearner will be loaded on-demand when their endpoints are accessed
+logger.info("Fine tuner and unlearner will be loaded on-demand (deferred due to potential Python 3.13 compatibility issues)")
+
+from detectors import (
+    load_models,
+    detect_harmful_content,
+    redact_pii,
+    detect_prompt_injection,
+)
 
 # Load policy (externalized configuration)
 policy = {}
@@ -352,7 +409,7 @@ def get_logs():
 
 import pandas as pd
 from werkzeug.utils import secure_filename
-import vector_db
+# vector_db import removed - using module-level variable set at startup
 
 # --- Obliviate Feature APIs ---
 
@@ -363,6 +420,10 @@ import random
 @app.route('/api/unlearn', methods=['POST'])
 def api_unlearn():
     """Performs unlearning on a model."""
+    # Lazy load unlearner
+    if not _load_unlearner():
+        return jsonify({"error": "Unlearning Engine is not available. This feature requires Python 3.11 or compatible transformers/torch versions."}), 503
+    
     if 'training_set' not in request.files or 'forget_set' not in request.files:
         return jsonify({"error": "Missing training or forget set file."}), 400
     
@@ -421,6 +482,9 @@ def api_unlearn():
 @app.route('/api/auditor/upload', methods=['POST'])
 def api_auditor_upload():
     """Handles dataset upload for the Hallucination Auditor."""
+    if not AUDITOR_AVAILABLE:
+        return jsonify({"error": "Hallucination Auditor is not available. Please use Python 3.11 or install required dependencies."}), 503
+    
     if 'dataset' not in request.files:
         return jsonify({"error": "Missing dataset file."}), 400
     
@@ -474,6 +538,9 @@ def api_auditor_upload():
 @app.route('/api/auditor/query', methods=['POST'])
 def api_auditor_query():
     """Queries the auditor's vector store and the LLM using ISR threshold."""
+    if not AUDITOR_AVAILABLE:
+        return jsonify({"error": "Hallucination Auditor is not available. Please use Python 3.11 or install required dependencies."}), 503
+    
     data = request.json
     if not data or 'query' not in data:
         return jsonify({"error": "Missing query."}), 400
@@ -536,6 +603,9 @@ def api_auditor_query():
 @app.route('/api/auditor/threshold', methods=['GET', 'POST'])
 def api_auditor_threshold():
     """Get or set the ISR threshold configuration."""
+    if not AUDITOR_AVAILABLE:
+        return jsonify({"error": "Hallucination Auditor is not available. Please use Python 3.11 or install required dependencies."}), 503
+    
     if request.method == 'GET':
         config = vector_db.get_isr_config()
         return jsonify(config)
@@ -567,6 +637,10 @@ import time
 @app.route('/api/forge/tune', methods=['POST'])
 def api_forge_tune():
     """Fine-tunes a model using the provided dataset with enhanced tracking."""
+    # Lazy load fine tuner
+    if not _load_fine_tuner():
+        return jsonify({"error": "Model Forge is not available. This feature requires Python 3.11 or compatible transformers/torch versions."}), 503
+    
     if 'dataset' not in request.files:
         return jsonify({"error": "Missing dataset file."}), 400
     
