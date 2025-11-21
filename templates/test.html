@@ -31,6 +31,22 @@
             line-height: 1.6; font-size: 16px;
             cursor: none; /* hide native cursor to fully replace with custom dot */
         }
+        /* Bottom blurred strip - subtle and cloudy */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: calc(2cm + 30px);
+            background: radial-gradient(ellipse at 50% 120%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.45) 40%, transparent 70%);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            pointer-events: none;
+            z-index: 9999;
+            mask-image: linear-gradient(to top, black 20%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, black 20%, transparent 100%);
+        }
         /* Ensure native cursor stays hidden on interactive controls */
         a, button, input, textarea, select, label, .caro-btn, .tab-btn, .copy-btn, .toggle-btn { cursor: none !important; }
         :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
@@ -392,9 +408,9 @@
                 <div class="wb-header">
                     <div class="dashboard-tabs">
                         <button id="tab-btn-shield" class="tab-btn active" onclick="showWorkbenchTab('shield', this)">Shield</button>
-                        <button id="tab-btn-auditor" class="tab-btn" onclick="showWorkbenchTab('auditor', this)">Auditor</button>
-                        <button id="tab-btn-forge" class="tab-btn" onclick="showWorkbenchTab('forge', this)">Forge</button>
-                        <button id="tab-btn-unlearning" class="tab-btn" onclick="showWorkbenchTab('unlearning', this)">Unlearning</button>
+                        <a href="/auditor" class="tab-btn" style="text-decoration: none; display: inline-block;">Auditor</a>
+                        <a href="/forge" class="tab-btn" style="text-decoration: none; display: inline-block;">Forge</a>
+                        <a href="/unlearning" class="tab-btn" style="text-decoration: none; display: inline-block;">Unlearning</a>
                     </div>
                 </div>
                 <div class="wb-body">

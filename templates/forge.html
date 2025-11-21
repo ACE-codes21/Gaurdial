@@ -31,6 +31,22 @@
             line-height: 1.6; font-size: 16px;
             cursor: none; /* hide native cursor to fully replace with custom dot */
         }
+        /* Bottom blurred strip - subtle and cloudy */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: calc(2cm + 30px);
+            background: radial-gradient(ellipse at 50% 120%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.45) 40%, transparent 70%);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            pointer-events: none;
+            z-index: 9999;
+            mask-image: linear-gradient(to top, black 20%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, black 20%, transparent 100%);
+        }
         /* Ensure native cursor stays hidden on interactive controls */
         a, button, input, textarea, select, label, .caro-btn, .tab-btn, .copy-btn, .toggle-btn { cursor: none !important; }
         :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
@@ -340,6 +356,74 @@
     .status.blocked { color: #fca5a5; background: rgba(60, 20, 20, 0.35); border-color: rgba(239,68,68,0.35); }
     .status.warn { color: #fcd34d; background: rgba(60, 48, 16, 0.35); border-color: rgba(245,158,11,0.35); }
 
+        /* Architecture & Workflow Styles */
+        .architecture-card { background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; }
+        .workflow-steps { display: flex; align-items: center; gap: 12px; overflow-x: auto; padding: 4px; }
+        .workflow-step { display: flex; flex-direction: column; align-items: center; min-width: 110px; text-align: center; }
+        .step-num { width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(255,255,255,0.1)); border: 2px solid rgba(255,255,255,0.3); display: grid; place-items: center; font-weight: 800; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(255,255,255,0.15); }
+        .step-content { font-size: 13px; }
+        .step-content strong { display: block; margin-bottom: 4px; color: var(--text); }
+        .step-content span { color: var(--muted); font-size: 11px; }
+        .workflow-arrow { font-size: 20px; color: var(--muted); margin: 0 -4px; align-self: start; padding-top: 20px; }
+
+        /* File Upload Zone */
+        .file-upload-zone { border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; padding: 32px 20px; text-align: center; transition: all 0.3s ease; background: rgba(255,255,255,0.02); cursor: pointer; }
+        .file-upload-zone:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.04); transform: translateY(-2px); }
+        .file-upload-zone.drag-over { border-color: #86efac; background: rgba(134, 239, 172, 0.05); }
+        .file-upload-zone.has-file { border-color: #86efac; background: rgba(134, 239, 172, 0.08); }
+        .upload-icon { font-size: 32px; margin-bottom: 8px; }
+        .upload-text { font-weight: 600; margin-bottom: 4px; }
+        .upload-formats { font-size: 12px; color: var(--muted); }
+        .upload-filename { margin-top: 12px; font-weight: 700; color: #86efac; display: none; }
+        .file-upload-zone.has-file .upload-filename { display: block; }
+        .file-upload-zone.has-file .upload-icon { display: none; }
+
+        /* Interactive Cards */
+        .interactive-card { position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .interactive-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,255,255,0.08); }
+
+        /* Badge */
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255,255,255,0.1); color: var(--text); }
+
+        /* Progress Tracker */
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .progress-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .progress-step { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); opacity: 0.5; transition: all 0.3s ease; }
+        .progress-step.active { opacity: 1; background: rgba(134, 239, 172, 0.1); border-color: #86efac; }
+        .progress-step.completed { opacity: 1; background: rgba(134, 239, 172, 0.05); }
+        .progress-icon { font-size: 24px; margin-bottom: 8px; }
+        .progress-label { font-size: 12px; font-weight: 600; }
+        .progress-bar-container { height: 8px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #86efac, #4ade80); width: 0%; transition: width 0.5s ease; border-radius: 999px; }
+
+        /* Primary Button */
+        .primary-btn { background: linear-gradient(135deg, #86efac, #4ade80) !important; color: #000 !important; font-weight: 800; padding: 14px 28px !important; box-shadow: 0 8px 20px rgba(134, 239, 172, 0.3) !important; }
+        .primary-btn:hover { box-shadow: 0 12px 28px rgba(134, 239, 172, 0.4) !important; }
+
+        /* Results */
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .result-stat { position: relative; overflow: hidden; }
+        .stat-icon { font-size: 32px; margin-bottom: 8px; }
+        .stat-desc { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .technical-details summary:hover { background: rgba(255,255,255,0.05); }
+
+        /* Select */
+        .select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+
+        /* Responsive Grid */
+        .responsive-grid { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 900px) {
+            .responsive-grid { grid-template-columns: 1fr; }
+            .workflow-steps { flex-direction: column; }
+            .workflow-arrow { transform: rotate(90deg); margin: -4px 0; padding: 0; }
+            .progress-steps { grid-template-columns: 1fr 1fr; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .footer { text-align: center; color: var(--muted); padding: 48px 20px; border-top: 1px solid var(--border); }
 
         /* Ultra-light custom cursor dot (no lag) */
@@ -374,24 +458,209 @@
     <main>
         <!-- Model Forge Section -->
         <section class="section" id="forge">
-            <h2>Model Forge</h2>
-            <p class="lead">Fine-tune your own models and integrate them seamlessly.</p>
+            <h2>🔨 Model Forge</h2>
+            <p class="lead">Fine-tune your own models and integrate them seamlessly into the <strong>unlearning pipeline</strong>.</p>
+            
+            <!-- Architecture Diagram -->
+            <div class="architecture-card" style="margin-bottom: 32px;">
+                <h3 style="margin: 0 0 20px; font-size: 20px;">⚙️ Fine-Tuning Pipeline</h3>
+                <div class="workflow-steps">
+                    <div class="workflow-step">
+                        <div class="step-num">1</div>
+                        <div class="step-content">
+                            <strong>Upload Dataset</strong>
+                            <span>Training data</span>
+                        </div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-num">2</div>
+                        <div class="step-content">
+                            <strong>Load Base Model</strong>
+                            <span>distilgpt2</span>
+                        </div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-num">3</div>
+                        <div class="step-content">
+                            <strong>Fine-Tune</strong>
+                            <span>Custom parameters</span>
+                        </div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-num">4</div>
+                        <div class="step-content">
+                            <strong>Save Model</strong>
+                            <span>./forged_model</span>
+                        </div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-num">5</div>
+                        <div class="step-content">
+                            <strong>Auto-Available</strong>
+                            <span>For unlearning</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Integration Highlight -->
+                <div style="margin-top: 24px; padding: 20px; background: rgba(134, 239, 172, 0.08); border: 1px solid rgba(134, 239, 172, 0.2); border-radius: 12px;">
+                    <h4 style="margin: 0 0 12px; font-size: 16px; display: flex; align-items: center; gap: 8px; color: #86efac;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        Seamless Integration
+                    </h4>
+                    <p style="margin: 0; color: var(--muted); font-size: 14px;">
+                        Models forged here are automatically detected by the <strong>Unlearning Engine</strong>. 
+                        No manual configuration needed - just forge and unlearn!
+                    </p>
+                </div>
+
+                <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                        <div>
+                            <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Base Model</div>
+                            <div style="font-weight: 700;">distilgpt2</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Output Path</div>
+                            <div style="font-weight: 700; font-family: monospace; font-size: 13px;">./forged_model</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Optimization</div>
+                            <div style="font-weight: 700;">FP16, Batch=4</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Tracking</div>
+                            <div style="font-weight: 700;">Loss + Metadata</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="workbench">
+                <div class="wb-header">
+                    <div class="wb-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                            <polyline points="2 17 12 22 22 17"/>
+                            <polyline points="2 12 12 17 22 12"/>
+                        </svg>
+                        Fine-Tuning Workbench
+                    </div>
+                </div>
                 <div class="wb-body">
                     <form id="forgeForm">
-                        <div class="card">
-                            <label for="dataset">Fine-tuning Dataset</label>
-                            <input type="file" id="dataset" name="dataset" accept=".json, .csv" required>
-                            <p class="hint">Upload a dataset to fine-tune a new model.</p>
+                        <div class="grid two responsive-grid">
+                            <div class="card interactive-card">
+                                <div class="label-row">
+                                    <label for="dataset">📄 Fine-tuning Dataset</label>
+                                    <span class="badge">Required</span>
+                                </div>
+                                <div class="file-upload-zone" id="forgeUploadZone">
+                                    <input type="file" id="dataset" name="dataset" accept=".json, .csv" required style="display: none;">
+                                    <div class="upload-icon">📤</div>
+                                    <div class="upload-text">Click to upload or drag & drop</div>
+                                    <div class="upload-formats">CSV or JSON with 'text' column</div>
+                                    <div class="upload-filename" style="display: none;"></div>
+                                </div>
+                                <p class="hint">Upload training data to customize the model for your domain.</p>
+                            </div>
+
+                            <div class="card interactive-card">
+                                <h4 style="margin: 0 0 16px; font-size: 16px;">⚙️ Training Parameters</h4>
+                                
+                                <div style="margin-bottom: 16px;">
+                                    <label for="epochs">Epochs</label>
+                                    <div style="display: flex; gap: 12px; align-items: center;">
+                                        <input type="range" id="epochs" name="epochs" min="1" max="5" value="2" style="flex: 1;">
+                                        <span id="epochsValue" style="font-weight: 700; min-width: 30px;">2</span>
+                                    </div>
+                                    <p class="hint" style="margin-top: 4px;">More epochs = better adaptation but longer training</p>
+                                </div>
+
+                                <div>
+                                    <label for="learningRate">Learning Rate</label>
+                                    <select id="learningRate" name="learningRate" class="select" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.04); color: #fff; border: 1px solid rgba(255,255,255,0.16); border-radius: 10px;">
+                                        <option value="1e-5">1e-5 (Conservative)</option>
+                                        <option value="5e-5" selected>5e-5 (Balanced)</option>
+                                        <option value="1e-4">1e-4 (Aggressive)</option>
+                                    </select>
+                                    <p class="hint" style="margin-top: 4px;">Higher rate = faster learning but risk of instability</p>
+                                </div>
+                            </div>
                         </div>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <button type="submit" id="tuneBtn"><span class="btn-label">Start Fine-tuning</span><span class="spinner"></span></button>
+                        
+                        <!-- Progress Tracker -->
+                        <div id="forgeProgress" style="display: none; margin-top: 24px;">
+                            <div class="progress-header">
+                                <h4 style="margin: 0; font-size: 16px;">⚙️ Training in Progress...</h4>
+                                <span id="trainingTime" style="color: var(--muted); font-size: 14px;">This may take a few minutes</span>
+                            </div>
+                            <div class="progress-steps" style="margin-top: 16px;">
+                                <div class="progress-step" data-step="1">
+                                    <div class="progress-icon">📦</div>
+                                    <div class="progress-label">Loading Data</div>
+                                </div>
+                                <div class="progress-step" data-step="2">
+                                    <div class="progress-icon">🤖</div>
+                                    <div class="progress-label">Loading Model</div>
+                                </div>
+                                <div class="progress-step" data-step="3">
+                                    <div class="progress-icon">🎓</div>
+                                    <div class="progress-label">Fine-Tuning</div>
+                                </div>
+                                <div class="progress-step" data-step="4">
+                                    <div class="progress-icon">💾</div>
+                                    <div class="progress-label">Saving</div>
+                                </div>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" id="forgeProgressBar"></div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 24px;">
+                            <button type="submit" id="tuneBtn" class="primary-btn"><span class="btn-label">🔨 Start Fine-Tuning</span><span class="spinner"></span></button>
                         </div>
                     </form>
-                    <div id="forgeResults" style="margin-top: 20px; display: none;">
-                        <h3>Training Loss</h3>
-                        <div class="card">
-                            <canvas id="lossChart"></canvas>
+                    
+                    <div id="forgeResults" style="margin-top: 32px; display: none;">
+                        <div class="results-header">
+                            <h3 style="margin: 0; font-size: 20px;">✅ Fine-Tuning Complete</h3>
+                            <div class="status success">Ready for Unlearning</div>
+                        </div>
+
+                        <div class="card" style="margin-top: 20px; background: rgba(134, 239, 172, 0.05); border-color: rgba(134, 239, 172, 0.2);">
+                            <h4 style="margin: 0 0 16px; font-size: 16px;">📈 Training Loss Curve</h4>
+                            <canvas id="lossChart" style="max-height: 300px;"></canvas>
+                        </div>
+
+                        <div class="technical-details" style="margin-top: 20px;">
+                            <details open>
+                                <summary style="cursor: pointer; font-weight: 700; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">📋 Model Metadata</summary>
+                                <div style="padding: 16px; margin-top: 8px; background: rgba(0,0,0,0.3); border-radius: 8px; font-family: monospace; font-size: 13px;">
+                                    <div style="display: grid; gap: 8px;">
+                                        <div><span style="color: var(--muted);">Model Path:</span> <span id="modelPath">./forged_model</span></div>
+                                        <div><span style="color: var(--muted);">Final Loss:</span> <span id="finalLoss" style="color: #86efac;">--</span></div>
+                                        <div><span style="color: var(--muted);">Dataset Samples:</span> <span id="datasetSamples">--</span></div>
+                                        <div><span style="color: var(--muted);">Training Blocks:</span> <span id="trainingBlocks">--</span></div>
+                                        <div><span style="color: var(--muted);">Status:</span> <span style="color: #86efac;">✓ Available for Unlearning</span></div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
+                        <div style="margin-top: 20px; padding: 16px; background: rgba(134, 239, 172, 0.08); border: 1px solid rgba(134, 239, 172, 0.2); border-radius: 12px; text-align: center;">
+                            <p style="margin: 0; color: #86efac; font-weight: 700;">🎉 Your forged model is ready!</p>
+                            <p style="margin: 8px 0 0; color: var(--muted); font-size: 14px;">
+                                Head to <a href="/unlearning" style="color: #86efac; text-decoration: underline;">LLM Unlearning</a> to use this model.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -411,17 +680,32 @@
         document.addEventListener('DOMContentLoaded', () => {
             initNavShrink();
             initCustomCursor();
+            initFileUpload();
+            initParameterControls();
 
             const form = document.getElementById('forgeForm');
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('tuneBtn');
                 const resultsDiv = document.getElementById('forgeResults');
+                const forgeProgress = document.getElementById('forgeProgress');
+                
+                forgeProgress.style.display = 'block';
+                resultsDiv.style.display = 'none';
                 
                 btn.classList.add('loading');
                 btn.disabled = true;
 
                 const formData = new FormData(form);
+                
+                // Add custom parameters
+                const epochs = document.getElementById('epochs').value;
+                const learningRate = document.getElementById('learningRate').value;
+                formData.append('epochs', epochs);
+                formData.append('learning_rate', learningRate);
+
+                // Simulate progress
+                simulateForgeProgress();
 
                 try {
                     const response = await fetch('/api/forge/tune', {
@@ -432,12 +716,33 @@
                     const data = await response.json();
 
                     if (response.ok) {
-                        resultsDiv.style.display = 'block';
-                        renderLossChart(data.loss_data);
+                        // Mark all steps as completed
+                        document.querySelectorAll('#forgeProgress .progress-step').forEach(step => {
+                            step.classList.add('completed');
+                            step.classList.remove('active');
+                        });
+                        document.getElementById('forgeProgressBar').style.width = '100%';
+
+                        // Show results after delay
+                        setTimeout(() => {
+                            forgeProgress.style.display = 'none';
+                            resultsDiv.style.display = 'block';
+                            
+                            // Update metadata
+                            document.getElementById('modelPath').textContent = data.model_path || './forged_model';
+                            document.getElementById('finalLoss').textContent = data.final_loss ? data.final_loss.toFixed(4) : '--';
+                            document.getElementById('datasetSamples').textContent = data.dataset_samples || '--';
+                            document.getElementById('trainingBlocks').textContent = data.training_blocks || '--';
+                            
+                            // Render loss chart
+                            renderLossChart(data.loss_data);
+                        }, 1000);
                     } else {
+                        forgeProgress.style.display = 'none';
                         alert('Error: ' + data.error);
                     }
                 } catch (error) {
+                    forgeProgress.style.display = 'none';
                     alert('An error occurred: ' + error.message);
                 } finally {
                     btn.classList.remove('loading');
@@ -445,6 +750,78 @@
                 }
             });
         });
+
+        function initFileUpload() {
+            const uploadZone = document.getElementById('forgeUploadZone');
+            const fileInput = document.getElementById('dataset');
+            const filenameDisplay = uploadZone.querySelector('.upload-filename');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    filenameDisplay.textContent = '✓ ' + file.name;
+                    uploadZone.classList.add('has-file');
+                }
+            });
+
+            // Drag and drop
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    const file = e.dataTransfer.files[0];
+                    filenameDisplay.textContent = '✓ ' + file.name;
+                    uploadZone.classList.add('has-file');
+                }
+            });
+        }
+
+        function initParameterControls() {
+            const epochsSlider = document.getElementById('epochs');
+            const epochsValue = document.getElementById('epochsValue');
+
+            epochsSlider.addEventListener('input', (e) => {
+                epochsValue.textContent = e.target.value;
+            });
+        }
+
+        function simulateForgeProgress() {
+            const steps = [
+                { step: 1, time: 2000, progress: 10 },
+                { step: 2, time: 3000, progress: 25 },
+                { step: 3, time: 20000, progress: 90 },
+                { step: 4, time: 3000, progress: 95 }
+            ];
+
+            let currentTime = 0;
+            steps.forEach(({ step, time, progress }) => {
+                setTimeout(() => {
+                    document.querySelectorAll('#forgeProgress .progress-step').forEach(s => s.classList.remove('active'));
+                    const stepEl = document.querySelector(`#forgeProgress .progress-step[data-step="${step}"]`);
+                    if (stepEl) {
+                        stepEl.classList.add('active');
+                        if (step > 1) {
+                            document.querySelector(`#forgeProgress .progress-step[data-step="${step - 1}"]`).classList.add('completed');
+                        }
+                    }
+                    document.getElementById('forgeProgressBar').style.width = progress + '%';
+                }, currentTime);
+                currentTime += time;
+            });
+        }
 
         function renderLossChart(lossData) {
             // Handle both old format (array) and new format (object with values/steps)

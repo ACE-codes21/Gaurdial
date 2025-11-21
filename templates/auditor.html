@@ -31,6 +31,22 @@
             line-height: 1.6; font-size: 16px;
             cursor: none; /* hide native cursor to fully replace with custom dot */
         }
+        /* Bottom blurred strip - subtle and cloudy */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: calc(2cm + 30px);
+            background: radial-gradient(ellipse at 50% 120%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.45) 40%, transparent 70%);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            pointer-events: none;
+            z-index: 9999;
+            mask-image: linear-gradient(to top, black 20%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, black 20%, transparent 100%);
+        }
         /* Ensure native cursor stays hidden on interactive controls */
         a, button, input, textarea, select, label, .caro-btn, .tab-btn, .copy-btn, .toggle-btn { cursor: none !important; }
         :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
@@ -340,6 +356,80 @@
     .status.blocked { color: #fca5a5; background: rgba(60, 20, 20, 0.35); border-color: rgba(239,68,68,0.35); }
     .status.warn { color: #fcd34d; background: rgba(60, 48, 16, 0.35); border-color: rgba(245,158,11,0.35); }
 
+        /* Architecture & Workflow Styles */
+        .architecture-card { background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; }
+        .workflow-steps { display: flex; align-items: center; gap: 12px; overflow-x: auto; padding: 4px; }
+        .workflow-step { display: flex; flex-direction: column; align-items: center; min-width: 120px; text-align: center; }
+        .step-num { width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(255,255,255,0.1)); border: 2px solid rgba(255,255,255,0.3); display: grid; place-items: center; font-weight: 800; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(255,255,255,0.15); }
+        .step-content { font-size: 13px; }
+        .step-content strong { display: block; margin-bottom: 4px; color: var(--text); }
+        .step-content span { color: var(--muted); font-size: 11px; }
+        .workflow-arrow { font-size: 20px; color: var(--muted); margin: 0 -4px; align-self: start; padding-top: 20px; }
+
+        /* ISR Threshold Levels */
+        .isr-level { display: grid; grid-template-columns: 90px 100px 1fr; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); }
+        .isr-range { font-family: monospace; font-weight: 700; font-size: 13px; }
+        .isr-label { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .isr-desc { font-size: 12px; color: var(--muted); }
+        .isr-very-high { border-left: 3px solid #86efac; }
+        .isr-very-high .isr-range, .isr-very-high .isr-label { color: #86efac; }
+        .isr-high { border-left: 3px solid #4ade80; }
+        .isr-high .isr-range, .isr-high .isr-label { color: #4ade80; }
+        .isr-moderate { border-left: 3px solid #fcd34d; }
+        .isr-moderate .isr-range, .isr-moderate .isr-label { color: #fcd34d; }
+        .isr-low { border-left: 3px solid #fb923c; }
+        .isr-low .isr-range, .isr-low .isr-label { color: #fb923c; }
+        .isr-very-low { border-left: 3px solid #fca5a5; }
+        .isr-very-low .isr-range, .isr-very-low .isr-label { color: #fca5a5; }
+
+        /* File Upload Zone */
+        .file-upload-zone { border: 2px dashed rgba(255,255,255,0.2); border-radius: 12px; padding: 32px 20px; text-align: center; transition: all 0.3s ease; background: rgba(255,255,255,0.02); cursor: pointer; }
+        .file-upload-zone:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.04); transform: translateY(-2px); }
+        .file-upload-zone.drag-over { border-color: #86efac; background: rgba(134, 239, 172, 0.05); }
+        .file-upload-zone.has-file { border-color: #86efac; background: rgba(134, 239, 172, 0.08); }
+        .upload-icon { font-size: 32px; margin-bottom: 8px; }
+        .upload-text { font-weight: 600; margin-bottom: 4px; }
+        .upload-formats { font-size: 12px; color: var(--muted); }
+        .upload-filename { margin-top: 12px; font-weight: 700; color: #86efac; display: none; }
+        .file-upload-zone.has-file .upload-filename { display: block; }
+        .file-upload-zone.has-file .upload-icon { display: none; }
+
+        /* Interactive Cards */
+        .interactive-card { position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .interactive-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,255,255,0.08); }
+
+        /* Threshold Badge */
+        .threshold-badge { padding: 6px 14px; background: rgba(252, 211, 77, 0.15); border: 1px solid rgba(252, 211, 77, 0.3); border-radius: 999px; font-size: 13px; font-weight: 700; color: #fcd34d; }
+
+        /* Primary Button */
+        .primary-btn { background: linear-gradient(135deg, #86efac, #4ade80) !important; color: #000 !important; font-weight: 800; padding: 14px 28px !important; box-shadow: 0 8px 20px rgba(134, 239, 172, 0.3) !important; }
+        .primary-btn:hover { box-shadow: 0 12px 28px rgba(134, 239, 172, 0.4) !important; }
+
+        /* Results */
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .result-stat { position: relative; overflow: hidden; }
+        .stat-icon { font-size: 32px; margin-bottom: 8px; }
+        .stat-desc { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .response-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
+        .technical-details summary:hover { background: rgba(255,255,255,0.05); }
+
+        /* Badge */
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255,255,255,0.1); color: var(--text); }
+
+        /* Responsive Grid */
+        .responsive-grid { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 900px) {
+            .responsive-grid { grid-template-columns: 1fr; }
+            .workflow-steps { flex-direction: column; }
+            .workflow-arrow { transform: rotate(90deg); margin: -4px 0; padding: 0; }
+            .isr-level { grid-template-columns: 1fr; gap: 6px; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .footer { text-align: center; color: var(--muted); padding: 48px 20px; border-top: 1px solid var(--border); }
 
         /* Ultra-light custom cursor dot (no lag) */
@@ -374,43 +464,212 @@
     <main>
         <!-- Hallucination Auditor Section -->
         <section class="section" id="auditor">
-            <h2>Hallucination Auditor</h2>
-            <p class="lead">Ensure model outputs are grounded in your provided data.</p>
-            <div class="workbench">
-                <div class="wb-body">
-                    <div class="grid two">
-                        <div class="card">
-                            <form id="datasetForm">
-                                <label for="dataset">Upload Dataset</label>
-                                <input type="file" id="dataset" name="dataset" accept=".json, .csv" required>
-                                <p class="hint">Upload a dataset to the Vector DB.</p>
-                                <button type="submit" id="uploadBtn"><span class="btn-label">Upload</span><span class="spinner"></span></button>
-                            </form>
+            <h2>🔍 Hallucination Auditor</h2>
+            <p class="lead">Ensure model outputs are grounded in your provided data using <strong>ISR threshold validation</strong>.</p>
+            
+            <!-- Architecture Diagram -->
+            <div class="architecture-card" style="margin-bottom: 32px;">
+                <h3 style="margin: 0 0 20px; font-size: 20px;">⚙️ RAG-Based Architecture</h3>
+                <div class="workflow-steps">
+                    <div class="workflow-step">
+                        <div class="step-num">1</div>
+                        <div class="step-content">
+                            <strong>Upload Dataset</strong>
+                            <span>Your knowledge base</span>
                         </div>
-                        <div class="card">
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-num">2</div>
+                        <div class="step-content">
+                            <strong>Vectorize</strong>
+                            <span>ChromaDB embeddings</span>
+                        </div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-num">3</div>
+                        <div class="step-content">
+                            <strong>Query & Retrieve</strong>
+                            <span>Semantic search</span>
+                        </div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-num">4</div>
+                        <div class="step-content">
+                            <strong>ISR Check</strong>
+                            <span>Threshold validation</span>
+                        </div>
+                    </div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">
+                        <div class="step-num">5</div>
+                        <div class="step-content">
+                            <strong>LLM Response</strong>
+                            <span>Grounded output</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ISR Threshold Explanation -->
+                <div style="margin-top: 24px; padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                    <h4 style="margin: 0 0 16px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4M12 8h.01"/>
+                        </svg>
+                        ISR (Information Source Retrieval) Threshold
+                    </h4>
+                    <div style="display: grid; gap: 12px;">
+                        <div class="isr-level isr-very-high">
+                            <span class="isr-range">0.75 - 1.0</span>
+                            <span class="isr-label">Very High</span>
+                            <span class="isr-desc">Direct match - Always allow</span>
+                        </div>
+                        <div class="isr-level isr-high">
+                            <span class="isr-range">0.55 - 0.74</span>
+                            <span class="isr-label">High</span>
+                            <span class="isr-desc">Closely related - Allow</span>
+                        </div>
+                        <div class="isr-level isr-moderate">
+                            <span class="isr-range">0.35 - 0.54</span>
+                            <span class="isr-label">Moderate</span>
+                            <span class="isr-desc">Some relevance - Default threshold (0.40)</span>
+                        </div>
+                        <div class="isr-level isr-low">
+                            <span class="isr-range">0.20 - 0.34</span>
+                            <span class="isr-label">Low</span>
+                            <span class="isr-desc">Limited relevance - Block</span>
+                        </div>
+                        <div class="isr-level isr-very-low">
+                            <span class="isr-range">0.0 - 0.19</span>
+                            <span class="isr-label">Very Low</span>
+                            <span class="isr-desc">Outside scope - Block</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                        <div>
+                            <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Vector DB</div>
+                            <div style="font-weight: 700;">ChromaDB + Cosine</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Default Threshold</div>
+                            <div style="font-weight: 700; color: #fcd34d;">0.40 (Balanced)</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Prevents</div>
+                            <div style="font-weight: 700;">Hallucinations</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workbench">
+                <div class="wb-header">
+                    <div class="wb-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Auditor Workbench
+                    </div>
+                    <div id="thresholdDisplay" class="threshold-badge">Threshold: 0.40</div>
+                </div>
+                <div class="wb-body">
+                    <div class="grid two responsive-grid">
+                        <div class="card interactive-card">
+                            <h3 style="margin: 0 0 16px; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                                <span>📚</span> Step 1: Upload Knowledge Base
+                            </h3>
+                            <form id="datasetForm">
+                                <div class="file-upload-zone" id="datasetUploadZone">
+                                    <input type="file" id="dataset" name="dataset" accept=".json, .csv, .txt" required style="display: none;">
+                                    <div class="upload-icon">📤</div>
+                                    <div class="upload-text">Click to upload or drag & drop</div>
+                                    <div class="upload-formats">CSV, JSON, or TXT</div>
+                                    <div class="upload-filename" style="display: none;"></div>
+                                </div>
+                                <p class="hint">Upload your company's knowledge base, policies, or any trusted data source.</p>
+                                <button type="submit" id="uploadBtn" style="width: 100%; margin-top: 12px;"><span class="btn-label">📦 Upload to Vector DB</span><span class="spinner"></span></button>
+                            </form>
+                            <div id="uploadStatus" style="margin-top: 12px; display: none;"></div>
+                        </div>
+                        
+                        <div class="card interactive-card">
+                            <h3 style="margin: 0 0 16px; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                                <span>💬</span> Step 2: Query with Validation
+                            </h3>
                             <form id="queryForm">
-                                <label for="query">Query</label>
-                                <textarea id="query" name="query" required></textarea>
-                                <p class="hint">Query the model.</p>
-                                <button type="submit" id="queryBtn"><span class="btn-label">Query</span><span class="spinner"></span></button>
+                                <label for="query">Your Question</label>
+                                <textarea id="query" name="query" required placeholder="e.g., What is our company's harassment policy?"></textarea>
+                                <p class="hint">The auditor will validate against uploaded data before responding.</p>
+                                
+                                <div style="margin: 16px 0;">
+                                    <label for="customThreshold">Custom Threshold (Optional)</label>
+                                    <div style="display: flex; gap: 12px; align-items: center;">
+                                        <input type="range" id="customThreshold" min="0.1" max="0.95" step="0.05" value="0.40" style="flex: 1;">
+                                        <span id="thresholdValue" style="font-weight: 700; min-width: 40px;">0.40</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px;">
+                                        <span>Strict (0.60+)</span>
+                                        <span>Balanced (0.40)</span>
+                                        <span>Flexible (0.25)</span>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" id="queryBtn" class="primary-btn" style="width: 100%;"><span class="btn-label">🔍 Query & Validate</span><span class="spinner"></span></button>
                             </form>
                         </div>
                     </div>
-                    <div id="auditorResults" style="margin-top: 20px; display: none;">
-                        <h3>Result</h3>
-                        <div class="result-grid">
-                            <div class="stat">
-                                <div id="decision" class="num">--</div>
-                                <div class="label">Decision</div>
-                            </div>
-                            <div class="stat">
+                    
+                    <div id="auditorResults" style="margin-top: 32px; display: none;">
+                        <div class="results-header">
+                            <h3 style="margin: 0; font-size: 20px;">📊 Validation Results</h3>
+                            <div id="decisionBadge" class="status">--</div>
+                        </div>
+                        
+                        <div class="result-grid" style="margin-top: 20px;">
+                            <div class="stat result-stat">
+                                <div class="stat-icon">🎯</div>
                                 <div id="isrScore" class="num">--</div>
                                 <div class="label">ISR Score</div>
+                                <div class="stat-desc" id="confidenceLevel">--</div>
+                            </div>
+                            <div class="stat result-stat">
+                                <div class="stat-icon">⚖️</div>
+                                <div id="thresholdCompare" class="num">--</div>
+                                <div class="label">Threshold</div>
+                                <div class="stat-desc">Decision boundary</div>
                             </div>
                         </div>
-                        <div style="margin-top: 20px;">
-                            <label>LLM Response</label>
-                            <pre id="llmResponse"></pre>
+
+                        <div class="response-card" style="margin-top: 24px;">
+                            <h4 style="margin: 0 0 12px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                LLM Response
+                            </h4>
+                            <pre id="llmResponse" style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;">--</pre>
+                        </div>
+
+                        <div class="technical-details" style="margin-top: 20px;">
+                            <details>
+                                <summary style="cursor: pointer; font-weight: 700; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">📋 View Validation Details</summary>
+                                <div style="padding: 16px; margin-top: 8px; background: rgba(0,0,0,0.3); border-radius: 8px; font-family: monospace; font-size: 13px;">
+                                    <div style="display: grid; gap: 8px;">
+                                        <div><span style="color: var(--muted);">Decision:</span> <span id="detailDecision">--</span></div>
+                                        <div><span style="color: var(--muted);">Explanation:</span> <span id="detailExplanation">--</span></div>
+                                        <div><span style="color: var(--muted);">Confidence:</span> <span id="detailConfidence">--</span></div>
+                                        <div><span style="color: var(--muted);">Matched Document:</span> <span id="matchedDoc" style="font-size: 11px; color: #86efac;">--</span></div>
+                                    </div>
+                                </div>
+                            </details>
                         </div>
                     </div>
                 </div>
@@ -429,11 +688,15 @@
         document.addEventListener('DOMContentLoaded', () => {
             initNavShrink();
             initCustomCursor();
+            initFileUpload();
+            initThresholdSlider();
 
             const datasetForm = document.getElementById('datasetForm');
             datasetForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('uploadBtn');
+                const uploadStatus = document.getElementById('uploadStatus');
+                
                 btn.classList.add('loading');
                 btn.disabled = true;
 
@@ -448,12 +711,15 @@
                     const data = await response.json();
 
                     if (response.ok) {
-                        alert('Dataset uploaded successfully!');
+                        uploadStatus.style.display = 'block';
+                        uploadStatus.innerHTML = '<div class="status success">✓ ' + data.message + '</div>';
                     } else {
-                        alert('Error: ' + data.error);
+                        uploadStatus.style.display = 'block';
+                        uploadStatus.innerHTML = '<div class="status blocked">✗ Error: ' + data.error + '</div>';
                     }
                 } catch (error) {
-                    alert('An error occurred: ' + error.message);
+                    uploadStatus.style.display = 'block';
+                    uploadStatus.innerHTML = '<div class="status blocked">✗ Error: ' + error.message + '</div>';
                 } finally {
                     btn.classList.remove('loading');
                     btn.disabled = false;
@@ -465,8 +731,10 @@
                 e.preventDefault();
                 const btn = document.getElementById('queryBtn');
                 const resultsDiv = document.getElementById('auditorResults');
-                const decisionEl = document.getElementById('decision');
+                const decisionBadge = document.getElementById('decisionBadge');
                 const isrScoreEl = document.getElementById('isrScore');
+                const thresholdCompareEl = document.getElementById('thresholdCompare');
+                const confidenceLevel = document.getElementById('confidenceLevel');
                 const llmResponseEl = document.getElementById('llmResponse');
 
                 btn.classList.add('loading');
@@ -474,6 +742,7 @@
 
                 const formData = new FormData(queryForm);
                 const query = formData.get('query');
+                const threshold = document.getElementById('customThreshold').value;
 
                 try {
                     const response = await fetch('/api/auditor/query', {
@@ -481,16 +750,36 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ query: query })
+                        body: JSON.stringify({ query: query, threshold: parseFloat(threshold) })
                     });
 
                     const data = await response.json();
 
                     if (response.ok) {
                         resultsDiv.style.display = 'block';
-                        decisionEl.textContent = data.decision;
+                        
+                        // Update decision badge
+                        decisionBadge.textContent = data.decision;
+                        decisionBadge.className = 'status ' + (data.decision === 'Allowed' ? 'success' : 'blocked');
+                        
+                        // Update ISR metrics
                         isrScoreEl.textContent = data.isr_score;
+                        thresholdCompareEl.textContent = data.threshold;
+                        confidenceLevel.textContent = data.confidence;
                         llmResponseEl.textContent = data.llm_response;
+                        
+                        // Update technical details
+                        document.getElementById('detailDecision').textContent = data.decision;
+                        document.getElementById('detailExplanation').textContent = data.explanation;
+                        document.getElementById('detailConfidence').textContent = data.confidence;
+                        document.getElementById('matchedDoc').textContent = data.reason;
+
+                        // Animate results
+                        resultsDiv.querySelectorAll('.result-stat').forEach((stat, idx) => {
+                            setTimeout(() => {
+                                stat.style.animation = 'fadeInUp 0.5s ease forwards';
+                            }, idx * 100);
+                        });
                     } else {
                         alert('Error: ' + data.error);
                     }
@@ -502,6 +791,56 @@
                 }
             });
         });
+
+        function initFileUpload() {
+            const uploadZone = document.getElementById('datasetUploadZone');
+            const fileInput = document.getElementById('dataset');
+            const filenameDisplay = uploadZone.querySelector('.upload-filename');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    filenameDisplay.textContent = '✓ ' + file.name;
+                    uploadZone.classList.add('has-file');
+                }
+            });
+
+            // Drag and drop
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    const file = e.dataTransfer.files[0];
+                    filenameDisplay.textContent = '✓ ' + file.name;
+                    uploadZone.classList.add('has-file');
+                }
+            });
+        }
+
+        function initThresholdSlider() {
+            const slider = document.getElementById('customThreshold');
+            const valueDisplay = document.getElementById('thresholdValue');
+            const badgeDisplay = document.getElementById('thresholdDisplay');
+
+            slider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value).toFixed(2);
+                valueDisplay.textContent = value;
+                badgeDisplay.textContent = 'Threshold: ' + value;
+            });
+        }
 
         function initNavShrink(){
             const nav = document.querySelector('.nav');
